@@ -14,14 +14,14 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 2. إعدادات الجيمناي (Gemini) ---
-# وضعت لكِ تنبيه لو نسيتي المفتاح
-API_KEY = "gen-lang-client-0999826215" 
+API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 
-if API_KEY == "ضعي_المفتاح_هنا_AIza":
-    st.error("⚠️ من فضلكِ ضعي مفتاح الـ API الخاص بجوجل ليعمل البرنامج.")
-else:
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+if not API_KEY:
+    st.error("أضيفي GOOGLE_API_KEY في إعدادات Secrets لتفعيل المساعد الذكي.")
+    st.stop()
+
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 3. إدارة الذاكرة (Session State) ---
 if "messages" not in st.session_state:
