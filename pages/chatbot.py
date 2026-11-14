@@ -1,144 +1,75 @@
 import streamlit as st
 
-# 1. إعدادات الصفحة والـ Theme التاريخي
-st.set_page_config(page_title="TimeCraft | بوابة العصور", layout="wide")
+st.set_page_config(page_title="TimeCraft | What If? Scenarios", layout="wide", page_icon="🕰️")
 
-st.markdown("""
-    <style>
-    import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+st.title("🕰️ The Time Portal")
+st.write("Choose a historical turning point and explore an educational alternative-history prompt.")
 
-    /* الخلفية العامة */
-    .stApp {
-        background-image: url("https://www.transparenttextures.com/patterns/dark-leather.png");
-        background-color: #1a120b;
-        color: #e2d1ad;
-        font-family: 'Amiri', serif;
-    }
+scenarios = {
+    "French Revolution (1789)": {
+        "year": "1789",
+        "place": "Paris, France",
+        "summary": "The French Revolution challenged the monarchy and transformed political life in France and beyond.",
+        "question": "How might European politics have developed if the revolutionary movement had ended earlier?",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Jacques_Bertaux_-_Prise_du_palais_des_Tuileries_-_1793.jpg/800px-Jacques_Bertaux_-_Prise_du_palais_des_Tuileries_-_1793.jpg",
+    },
+    "World War II (1939)": {
+        "year": "1939–1945",
+        "place": "Global conflict",
+        "summary": "World War II involved countries across the world and reshaped international institutions and borders.",
+        "question": "Which post-war developments might have changed if the conflict had ended sooner?",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/World_War_II_Montage.PNG/800px-World_War_II_Montage.PNG",
+    },
+    "The Age of Discovery (1492)": {
+        "year": "1492",
+        "place": "Atlantic Ocean and the Americas",
+        "summary": "The voyages across the Atlantic initiated sustained contact between Europe and the Americas, with profound consequences for Indigenous societies.",
+        "question": "How could the histories of the Americas have changed if these voyages had been delayed?",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Columbus_Taking_Possession.jpg/800px-Columbus_Taking_Possession.jpg",
+    },
+    "The Industrial Revolution (c. 1760 onward)": {
+        "year": "c. 1760 onward",
+        "place": "Britain, then many regions",
+        "summary": "Industrialization changed production, transport, cities, and labor across generations.",
+        "question": "How might societies have developed if mechanized production had spread more slowly?",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Powerloom_weaving_in_1835.jpg/800px-Powerloom_weaving_in_1835.jpg",
+    },
+    "The Islamic Golden Age": {
+        "year": "Approximately 8th–13th centuries",
+        "place": "A network of cities across the Islamic world",
+        "summary": "Scholars working in diverse regions contributed to mathematics, medicine, astronomy, philosophy, and other fields.",
+        "question": "What might have changed if major scholarly institutions had remained continuously supported?",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Aristotle_Rossello_Ardit.jpg/800px-Aristotle_Rossello_Ardit.jpg",
+    },
+}
 
-    /* العناوين الذهبية */
-    h1, h2, h3 {
-        color: #d4af37 !important;
-        text-align: center;
-        text-shadow: 2px 2px 4px #000;
-    }
-
-
-    /* تصميم الأزرار */
-    div.stButton > button {
-        background-color: #3d2b1f;
-        color: #d4af37;
-        border: 1px solid #d4af37;
-        width: 100%;
-        font-size: 1.2rem;
-        transition: 0.3s;
-    }
-    div.stButton > button:hover {
-        background-color: #d4af37;
-        color: #1a120b;
-    }
-
-    /* تعديل شكل الـ Metrics */
-    [data-testid="stMetricValue"] {
-        color: #d4af37 !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- محتوى الصفحة ---
-st.markdown('<h1>🕰️ بوابة العصور: اختر نقطة التحول التاريخية</h1>', unsafe_allow_html=True)
-st.write("---")
-
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.markdown('<div class="control-panel">', unsafe_allow_html=True)
-    st.subheader("🎮 لوحة التحكم")
-    
-    era = st.selectbox(
-        "اختر الحقبة الزمنية التي تريد استكشافها:",
-        ["....اختر",
-         "الثورة الفرنسية (1789)",
-         "الحرب العالمية الثانية (1939)",
-         "اكتشاف أمريكا (1492)",
-         "الثورة الصناعية (1760)",
-         "العصر الذهبي الإسلامي"]
-    )
-    
+with st.sidebar:
+    st.subheader("Scenario controls")
+    selected_era = st.selectbox("Choose an era", ["Select an era", *scenarios.keys()])
     detail_level = st.select_slider(
-        "مستوى دقة المحاكاة التاريخية:",
-        options=["أساسي", "متوسط", "متقدم", "شامل"]
+        "Reflection prompt level",
+        options=["Introductory", "Intermediate", "Advanced", "In-depth"],
     )
-    
-    start_sim = st.button("🚀 بدء المحاكاة الزمنية")
-    st.markdown('</div>', unsafe_allow_html=True)
 
-with col2:
-    if start_sim and era != "....اختر":
-        st.success(f"✨ تم تفعيل بوابة الزمن! نحن الآن في {era}")
-        
-        # --- قسم الثورة الفرنسية ---
-        if era == "الثورة الفرنسية (1789)":
-            st.header("🇫🇷 الثورة الفرنسية")
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Jacques_Bertaux_-_Prise_du_palais_des_Tuileries_-_1793.jpg/250px-Jacques_Bertaux_-_Prise_du_palais_des_Tuileries_-_1793.jpg", 
-                     caption="اقتحام سجن الباستيل", use_container_width=True)
-            
-            st.info("📜 نبذة تاريخية: سقوط الملكية وظهور مفاهيم حقوق الإنسان.")
-            
-            # عرض المقاييس بشكل أنيق
-            m1, m2 = st.columns(2)
-            m1.metric("السنة", "1789", "بداية الثورة")
-            m2.metric("المكان", "باريس، فرنسا")
-            
-            st.warning("🤔 ماذا لو لم يقتحم الشعب سجن الباستيل؟ هل كان نابليون سيظهر؟")
+if selected_era == "Select an era":
+    st.info("Choose an era in the sidebar to open its scenario.")
+else:
+    scenario = scenarios[selected_era]
+    st.success(f"Scenario selected: {selected_era}")
+    image_column, content_column = st.columns([1, 2], vertical_alignment="center")
+    with image_column:
+        st.image(scenario["image"], caption=selected_era, width="stretch")
+    with content_column:
+        st.header(selected_era)
+        metric_columns = st.columns(2)
+        metric_columns[0].metric("Period", scenario["year"])
+        metric_columns[1].metric("Region", scenario["place"])
+        st.subheader("Historical context")
+        st.write(scenario["summary"])
+        st.subheader("Alternative-history question")
+        st.write(scenario["question"])
+        st.caption(f"Reflection level: {detail_level}")
 
-        # --- قسم الحرب العالمية الثانية ---
-        elif era == "الحرب العالمية الثانية (1939)":
-            st.header("🌍 الحرب العالمية الثانية")
-            st.image("https://fmcdn.alqaheranews.net/2c2f7460-684e-11ef-83b0-ef159e6c0f8c-file-1725187042980-577631689?&w=700&compress=80&gravity=face", 
-                     use_container_width=True)
-            
-            m1, m2 = st.columns(2)
-            m1.metric("بداية الحرب", "1939")
-            m2.metric("المشاركون", "+50 دولة")
-            
-            st.error("💭 السيناريو البديل: ماذا لو انتصرت دول المحور؟")
-
-        # --- قسم اكتشاف أمريكا ---
-        elif era == "اكتشاف أمريكا (1492)":
-            st.header("⛵ اكتشاف أمريكا")
-            st.image("https://img.youm7.com/large/20171012033500350.jpg", 
-                     use_container_width=True)
-            
-            m1, m2 = st.columns(2)
-            m1.metric("السنة", "1492")
-            m2.metric("القائد", "كولومبوس")
-            
-            st.success("🌟 ماذا لو لم تصل السفن؟ هل كانت الحضارات الأصلية ستزدهر؟")
-
-        # --- قسم الثورة الصناعية ---
-        elif era == "الثورة الصناعية (1760)":
-            st.header("⚙️ الثورة الصناعية")
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Powerloom_weaving_in_1835.jpg/800px-Powerloom_weaving_in_1835.jpg", 
-                     use_container_width=True)
-            
-            m1, m2 = st.columns(2)
-            m1.metric("البداية", "1760")
-            m2.metric("المصدر", "بريطانيا")
-
-        # --- العصر الذهبي الإسلامي ---
-        elif era == "العصر الذهبي الإسلامي":
-            st.header("🕌 العصر الذهبي الإسلامي")
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Aristotle_Rossello_Ardit.jpg/800px-Aristotle_Rossello_Ardit.jpg", 
-                     use_container_width=True)
-            
-            m1, m2 = st.columns(2)
-            m1.metric("الفترة", "750-1258 م")
-            m2.metric("المركز", "بغداد")
-            
-            st.success("🌙 ماذا لو استمر العصر الذهبي؟ كيف كانت مكانتنا العلمية اليوم؟")
-
-        st.write("---")
-        st.success(f"✅ تم تحميل المسارات البديلة للحقبة بنجاح!")
-        
-    elif start_sim and era == "....اختر":
-        st.warning("⚠️ من فضلك اختر حقبة تاريخية أولاً لبدء المحاكاة!")
+    st.warning(
+        "These are discussion prompts, not predictions or claims that an alternative outcome would have occurred."
+    )

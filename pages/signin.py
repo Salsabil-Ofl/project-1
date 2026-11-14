@@ -1,22 +1,16 @@
 import streamlit as st
 
-st.set_page_config(
-    page_title="Sign In",
-    page_icon="🔑",
-    layout="centered"
-)
+st.set_page_config(page_title="TimeCraft | Sign In", page_icon="🔑", layout="centered")
+st.title("🔐 Sign in")
+st.info("Sign-in is a user-interface demo only. No account authentication is implemented.")
 
-st.title("🔐 Sign In")
+with st.form("sign_in_form"):
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    submitted = st.form_submit_button("Continue")
 
-st.write("Please enter your details to continue")
-
-# Inputs
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
-
-# Button
-if st.button("Sign In"):
-    if username and password:
-        st.success(f"Welcome {username} ")
+if submitted:
+    if username.strip() and password:
+        st.warning("This prototype does not verify credentials or create a signed-in session.")
     else:
-        st.error("Please fill all fields")
+        st.error("Enter both a username and a password to preview the form.")

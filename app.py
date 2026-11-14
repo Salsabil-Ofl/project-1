@@ -1,81 +1,88 @@
 import streamlit as st
 
-
 st.set_page_config(
-    page_title="TimeCraft | رحلة عبر الزمن", 
+    page_title="TimeCraft | Historical Explorer",
     layout="wide",
     initial_sidebar_state="expanded",
-    page_icon="⏳"
+    page_icon="⏳",
 )
 
 home_page = st.Page(
-    page='pages/home.py',
-    title='الصفحة الرئيسية',
-    icon='🏠',
+    page="pages/home.py",
+    title="Home",
+    icon="🏠",
     default=True,
-    url_path="home"
+    url_path="home",
 )
 
-
-chatbot2_page = st.Page(
-    page='pages/chatbot2.py', 
-    title='اسأل الذكاء الاصطناعي', 
-    icon='✨',
-    url_path="chatbot2"
+simulation_page = st.Page(
+    page="pages/chatbot.py",
+    title="What If? Scenarios",
+    icon="🕰️",
+    url_path="scenarios",
 )
-chatbot_page = st.Page(
-    page='pages/chatbot.py', 
-    title='بوابة العصور التاريخية', 
-    icon='🕰️',
-    url_path="chatbot"
+
+assistant_page = st.Page(
+    page="pages/chatbot2.py",
+    title="AI Assistant",
+    icon="✨",
+    url_path="assistant",
+)
+
+world_updates_page = st.Page(
+    page="pages/world_updates.py",
+    title="World Updates",
+    icon="🌐",
+    url_path="world-updates",
+)
+
+history_page = st.Page(
+    page="pages/ex.py",
+    title="Historical Events",
+    icon="📜",
+    url_path="events",
+)
+
+figures_page = st.Page(
+    page="pages/pro.py",
+    title="Historical Figures",
+    icon="👤",
+    url_path="figures",
 )
 
 about_page = st.Page(
-    page='pages/about.py', 
-    title='عن التطبيق', 
-    url_path="about"
+    page="pages/about.py",
+    title="About",
+    icon="ℹ️",
+    url_path="about",
 )
 
-ex_page = st.Page(
-    page='pages/ex.py', 
-    title='الأحداث التاريخية', 
-    url_path="experiments"
+sign_in_page = st.Page(
+    page="pages/signin.py",
+    title="Sign In",
+    icon="🔑",
+    url_path="signin",
 )
 
-pro_page = st.Page(
-    page='pages/pro.py', 
-    title='الموسوعة الشخصية', 
-    icon='👤',
-    url_path="profile"
-)
-signin_page = st.Page(
-    page='pages/signin.py', 
-    title='تسجيل الدخول', 
-    icon='🔑',
-    url_path="signin"
+sign_up_page = st.Page(
+    page="pages/signup.py",
+    title="Sign Up",
+    icon="📝",
+    url_path="signup",
 )
 
-signup_page = st.Page(
-    page='pages/signup.py', 
-    title='إنشاء حساب', 
-    icon='📝',
-    url_path="signup"
-)
-
-all_pages = st.navigation(
-    pages=[
+navigation = st.navigation(
+    [
         home_page,
-        signin_page,
-        signup_page,
-        chatbot2_page,
+        history_page,
+        figures_page,
+        simulation_page,
+        world_updates_page,
+        assistant_page,
         about_page,
-        ex_page,
-        pro_page,
-        chatbot_page
+        sign_in_page,
+        sign_up_page,
     ],
-    position='top'
+    position="top",
 )
-
-all_pages.run()
-
-# خلفية جميلة باستخدام Streamlit فقط
+navigation.run()

@@ -1,91 +1,109 @@
+"""Optional Google Gemini-powered chat page for TimeCraft."""
+
+import os
+
 import streamlit as st
-import google.generativeai as genai
 from duckduckgo_search import DDGS
+from google import genai
 
-# --- 1. إعدادات واجهة المستخدم ---
-st.set_page_config(page_title="AI Genius Pro", page_icon="🎓", layout="centered")
 
-# لمسة جمالية للويندوز
-st.markdown("""
-    <style>
-    .stApp { background-color: black; }
-    .stChatMessage { border-radius: 15px; border: 1px solid #eee; }
-    </style>
-    """, unsafe_allow_html=True)
+st.set_page_config(page_title="TimeCraft | AI Assistant", page_icon="✨", layout="centered")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
 
-# --- 2. إعدادات الجيمناي (Gemini) ---
-API_KEY = st.secrets.get("GOOGLE_API_KEY", "")
 
-if not API_KEY:
-    st.error("أضيفي GOOGLE_API_KEY في إعدادات Secrets لتفعيل المساعد الذكي.")
-    st.stop()
+def get_api_key() -> str:
+    """Read the Gemini key from the environment or Streamlit Secrets."""
+    key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if key:
+        return key
+    try:
+        return str(st.secrets.get("GOOGLE_API_KEY", "")).strip()
+    except Exception:
+        return ""
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
-# --- 3. إدارة الذاكرة (Session State) ---
+api_key = get_api_key()
+client = None
+if api_key:
+    try:
+        client = genai.Client(api_key=api_key)
+    except Exception:
+        st.error("Gemini could not be initialized. Check the API key and model configuration.")
+else:
+    st.info(
+        "The AI assistant is optional. Set GOOGLE_API_KEY in your environment or Streamlit Secrets "
+        "to enable it. The other TimeCraft pages work without an API key."
+    )
+
+st.title("🎓 TimeCraft AI Assistant")
+st.caption("Ask a history question. Include the word “images” to search for related pictures.")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- 4. عرض المحادثة ---
-st.title("🎓 مساعدك الذكي")
-st.info("اسأليني عن أي معلومة، وإذا أردتِ صوراً اكتبي كلمة 'صور' في سؤالك.")
+with st.sidebar:
+    st.caption(f"Model: `{MODEL_NAME}`")
+    if st.button("Clear conversation", width="stretch"):
+        st.session_state.messages = []
+        st.rerun()
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-        if "images" in message and message["images"]:
-            cols = st.columns(len(message["images"]))
-            for i, img_url in enumerate(message["images"]):
-                cols[i].image(img_url, use_container_width=True)
+        for image_url in message.get("images", []):
+            st.image(image_url, width="stretch")
 
-# --- 5. استقبال المدخلات وتوليد الرد ---
-if prompt := st.chat_input("بماذا يمكنني مساعدتك اليوم؟"):
-    
-    # 1. إضافة سؤال المستخدم للذاكرة والعرض
+prompt = st.chat_input("What would you like to explore?", disabled=client is None)
+
+if prompt and client is not None:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # 2. توليد رد المساعد
-    with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        full_response = ""
-        
-        try:
-            # تشغيل الرد بشكل متدفق (Streaming) للسرعة
-            result = model.generate_content(prompt, stream=True)
-            for chunk in result:
-                full_response += chunk.text
-                response_placeholder.markdown(full_response + "▌")
-            response_placeholder.markdown(full_response)
-            
-            # 3. البحث عن الصور (اختياري بناءً على السؤال)
-            found_images = []
-            trigger_words = ["صورة", "صور", "image", "وريني"]
-            if any(word in prompt.lower() for word in trigger_words):
-                with st.status("🔍 جاري جلب الصور من الإنترنت...") as status:
-                    # تنقية نص البحث
-                    clean_query = prompt
-                    for w in trigger_words: clean_query = clean_query.replace(w, "")
-                    
-                    with DDGS() as ddgs:
-                        # تحويل النتائج لقائمة لأخذ أول 3 صور
-                        search_results = list(ddgs.images(clean_query.strip(), max_results=3))
-                        if search_results:
-                            cols = st.columns(len(search_results))
-                            for idx, res in enumerate(search_results):
-                                img_url = res['image']
-                                found_images.append(img_url)
-                                cols[idx].image(img_url, use_container_width=True)
-                        status.update(label="تم العثور على الصور!", state="complete")
+    try:
+        with st.chat_message("assistant"):
+            response_placeholder = st.empty()
+            response_parts = []
+            with st.spinner("Thinking..."):
+                for chunk in client.models.generate_content_stream(
+                    model=MODEL_NAME,
+                    contents=prompt,
+                ):
+                    text = getattr(chunk, "text", "") or ""
+                    if text:
+                        response_parts.append(text)
+                        response_placeholder.markdown("".join(response_parts) + "▌")
 
-            # 4. حفظ الرد النهائي مع الصور في الذاكرة
-            st.session_state.messages.append({
-                "role": "assistant", 
-                "content": full_response, 
-                "images": found_images
-            })
-            
-        except Exception as e:
-            st.error(f"خطأ: تأكدي من المفتاح أو اتصالك بالإنترنت. التفاصيل: {e}")
+            full_response = "".join(response_parts).strip()
+            if not full_response:
+                full_response = "The model returned no text. Please try rephrasing your question."
+            response_placeholder.markdown(full_response)
+
+            found_images = []
+            image_terms = ("image", "images", "picture", "pictures", "show me")
+            if any(term in prompt.casefold() for term in image_terms):
+                clean_query = prompt
+                for term in image_terms:
+                    clean_query = clean_query.replace(term, "")
+                try:
+                    with st.status("Searching for images...", expanded=False) as status:
+                        with DDGS() as search:
+                            results = list(search.images(clean_query.strip(), max_results=3))
+                        found_images = [item["image"] for item in results if item.get("image")]
+                        if found_images:
+                            image_columns = st.columns(len(found_images))
+                            for column, image_url in zip(image_columns, found_images):
+                                column.image(image_url, width="stretch")
+                            status.update(label="Image search complete", state="complete")
+                        else:
+                            status.update(label="No matching images found", state="complete")
+                except Exception:
+                    st.warning("Image search is unavailable right now. You can continue the text conversation.")
+
+        st.session_state.messages.append(
+            {"role": "assistant", "content": full_response, "images": found_images}
+        )
+    except Exception as error:
+        st.error("Gemini could not return a response. Check the key and your internet connection, then try again.")
+        with st.expander("Technical details"):
+            st.code(str(error))
